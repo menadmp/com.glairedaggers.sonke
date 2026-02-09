@@ -86,7 +86,7 @@ public class JumpDashAction : PlayerActionBase {
 		float timer = duration;
 		var rb = GetComponent<Rigidbody>();
 
-		rb.velocity = Vector3.zero;
+		rb.linearVelocity = Vector3.zero;
 		_collided = false;
 
 		while(timer > 0f && !_collided) {
@@ -94,9 +94,9 @@ public class JumpDashAction : PlayerActionBase {
 			physics.RotateTowardsInput(rotationSpeed);
 
 			Vector3 targetV = physics.facingDirection * dashSpeed;
-			targetV.y = rb.velocity.y - (gravity * Time.deltaTime);
+			targetV.y = rb.linearVelocity.y - (gravity * Time.deltaTime);
 
-			rb.velocity = targetV;
+			rb.linearVelocity = targetV;
 			yield return null;
 		}
 

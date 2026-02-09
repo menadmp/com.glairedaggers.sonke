@@ -46,7 +46,7 @@ public class SpinDashAction : PlayerActionBase {
 		if(phase == ActionPhase.Enter) {
 			physics.LockState();
 			physics.ForceRolling(true);
-			GetComponent<Rigidbody>().velocity = Vector3.zero;
+			GetComponent<Rigidbody>().linearVelocity = Vector3.zero;
 			_charge = 0f;
 			_charging = true;
 		} else {
