@@ -238,7 +238,7 @@ public class PlayerPhysics : MonoBehaviour {
 	public void Bounce(Vector3 force, float duration = 0f) {
 		onBounce.Invoke();
 
-		_rb.velocity = force;
+		_rb.linearVelocity = force;
 		Detach();
 		_isJumping = true;
 		_isGrounded = false;
@@ -264,10 +264,10 @@ public class PlayerPhysics : MonoBehaviour {
 	/// </summary>
 	public void Boost(float amount) {
 		float target = _rolling ? maxRollingSpeed : maxSpeed;
-		float speedInDir = Vector3.Dot(_rb.velocity, facingDirection);
+		float speedInDir = Vector3.Dot(_rb.linearVelocity, facingDirection);
 		float diff = target - speedInDir;
 		diff = Mathf.Clamp(diff, 0f, amount);
-		_rb.velocity += facingDirection * diff;
+		_rb.linearVelocity += facingDirection * diff;
 	}
 
 	/// <summary>
@@ -366,7 +366,7 @@ public class PlayerPhysics : MonoBehaviour {
 			if(_isGrounded) {
 				// apply jumping force away from current ground normal and detach
 				_isJumping = true;
-				_rb.velocity += _groundNormal * jumpForce;
+				_rb.linearVelocity += _groundNormal * jumpForce;
 				_isGrounded = false;
 				_rolling = false;
 				Detach();
@@ -376,8 +376,8 @@ public class PlayerPhysics : MonoBehaviour {
 			_jumpBtnState = true;
 		} else if(!state && _jumpBtnState) {
 			if(!_isGrounded && _isJumping) {
-				if(_rb.velocity.y > jumpCut) {
-					_rb.velocity = new Vector3(_rb.velocity.x, jumpCut, _rb.velocity.z);
+				if(_rb.linearVelocity.y > jumpCut) {
+					_rb.linearVelocity = new Vector3(_rb.linearVelocity.x, jumpCut, _rb.linearVelocity.z);
 				}
 			}
 
@@ -391,7 +391,7 @@ public class PlayerPhysics : MonoBehaviour {
 	private void PhysicsTick() {
 		if(_bounceTime > 0f) {
 			_bounceTime -= Time.deltaTime;
-			_rb.velocity = _bounceVel;
+			_rb.linearVelocity = _bounceVel;
 			_groundNormal = Vector3.up;
 			_airTime += Time.deltaTime;
 			_wasAirborne = true;
@@ -401,7 +401,7 @@ public class PlayerPhysics : MonoBehaviour {
 			_wasBraking = false;
 			RealignUp(_groundNormal);
 		} else {
-			Debug.DrawRay(_tr.position + _tr.up, _rb.velocity.normalized * (1f + GROUNDCHECK_DIST));
+			Debug.DrawRay(_tr.position + _tr.up, _rb.linearVelocity.normalized * (1f + GROUNDCHECK_DIST));
 
 			if(Physics.Raycast(_tr.position + _tr.up, -_tr.up, out var hitInfo, 1f + GROUNDCHECK_DIST, groundCollisionLayers, QueryTriggerInteraction.Ignore) &&
 	   			!_forceDetach) {
@@ -435,7 +435,7 @@ public class PlayerPhysics : MonoBehaviour {
 			}
 		}
 
-		Vector3 localVel = _tr.InverseTransformDirection(_rb.velocity);
+		Vector3 localVel = _tr.InverseTransformDirection(_rb.linearVelocity);
 		localVel.y = 0f;
 
 		// update target facing to direction we're moving in
@@ -463,12 +463,12 @@ public class PlayerPhysics : MonoBehaviour {
 
 		// if we've just landed on the ground, convert velocity perpendicular to ground plane into a speed boost
 		if(_wasAirborne) {
-			Vector3 addSpeed = Mathf.Abs(Vector3.Dot(_rb.velocity, _groundNormal)) * Vector3.ProjectOnPlane(_rb.velocity, _groundNormal).normalized * landingSpeedConversion;
-			_rb.velocity += addSpeed;
+			Vector3 addSpeed = Mathf.Abs(Vector3.Dot(_rb.linearVelocity, _groundNormal)) * Vector3.ProjectOnPlane(_rb.linearVelocity, _groundNormal).normalized * landingSpeedConversion;
+			_rb.linearVelocity += addSpeed;
 			_wasAirborne = false;
 		}
 
-		Vector3 planeVel = Vector3.ProjectOnPlane(_rb.velocity, _groundNormal);
+		Vector3 planeVel = Vector3.ProjectOnPlane(_rb.linearVelocity, _groundNormal);
 
 		// unroll if we go below rolling speed threshold
 		if(_rolling && planeVel.sqrMagnitude < (unrollSpeedThreshold * unrollSpeedThreshold)) {
@@ -478,32 +478,32 @@ public class PlayerPhysics : MonoBehaviour {
 		if(groundSlope >= CEILING_ANGLE_THRESHOLD) {
 			// detach if speed falls below a certain threshold
 			if(planeVel.sqrMagnitude < (slopeSpeedThreshold * slopeSpeedThreshold)) {
-				_rb.velocity += _groundNormal * 3f;
+				_rb.linearVelocity += _groundNormal * 3f;
 				Detach();
 			}
 		} else if(groundSlope >= SLOPE_ANGLE_THRESHOLD) {
 			// if we're moving downhill, apply a downhill speed boost
-			if(_rb.velocity.y < 0f) {
-				float d = _rb.velocity.normalized.y;
-				_rb.velocity += Vector3.ProjectOnPlane(Vector3.up, _groundNormal) * d * downhillSpeedBoost;
+			if(_rb.linearVelocity.y < 0f) {
+				float d = _rb.linearVelocity.normalized.y;
+				_rb.linearVelocity += Vector3.ProjectOnPlane(Vector3.up, _groundNormal) * d * downhillSpeedBoost;
 			}
 
-			_rb.velocity += Vector3.ProjectOnPlane(Vector3.down, _groundNormal) * slidePushForce * Time.deltaTime;
+			_rb.linearVelocity += Vector3.ProjectOnPlane(Vector3.down, _groundNormal) * slidePushForce * Time.deltaTime;
 		}
 	}
 
 	private void HandleAirPhysics() {
 		AirControl();
-		_rb.velocity += gravity * Time.deltaTime;
+		_rb.linearVelocity += gravity * Time.deltaTime;
 
-		if(_rb.velocity.y < -maxFallSpeed) {
-			_rb.velocity = new Vector3(_rb.velocity.x, -maxFallSpeed, _rb.velocity.z);
+		if(_rb.linearVelocity.y < -maxFallSpeed) {
+			_rb.linearVelocity = new Vector3(_rb.linearVelocity.x, -maxFallSpeed, _rb.linearVelocity.z);
 		}
 	}
 
 	private void GroundControl() {
 		// get velocity in local space and store lateral component
-		Vector3 velocityLS = transform.InverseTransformDirection(_rb.velocity);
+		Vector3 velocityLS = transform.InverseTransformDirection(_rb.linearVelocity);
 		Vector3 velocityXZ = new Vector3(velocityLS.x, 0f, velocityLS.z);
 
 		// turn axes into local-space direction
@@ -548,7 +548,7 @@ public class PlayerPhysics : MonoBehaviour {
 			}
 		} else {
 			// apply deceleration unless slope is too steep and player is going downhill
-			if(Vector3.Angle(_groundNormal, Vector3.up) < SLOPE_ANGLE_THRESHOLD || _rb.velocity.y > 0f) {
+			if(Vector3.Angle(_groundNormal, Vector3.up) < SLOPE_ANGLE_THRESHOLD || _rb.linearVelocity.y > 0f) {
 				velocityXZ *= 1f - (_rolling ? rollingFriction : groundFriction);
 			}
 		}
@@ -564,12 +564,12 @@ public class PlayerPhysics : MonoBehaviour {
 		// transform back into world space, perform ground sticking, and apply
 		Vector3 velocityWS = transform.rotation * new Vector3(velocityXZ.x, velocityLS.y, velocityXZ.z);
 		velocityWS = StickToGround(velocityWS);
-		_rb.velocity = velocityWS;
+		_rb.linearVelocity = velocityWS;
 	}
 
 	private void AirControl() {
 		// get velocity in local space and store lateral component
-		Vector3 velocityLS = transform.InverseTransformDirection(_rb.velocity);
+		Vector3 velocityLS = transform.InverseTransformDirection(_rb.linearVelocity);
 		Vector3 velocityXZ = new Vector3(velocityLS.x, 0f, velocityLS.z);
 
 		// turn axes into local-space direction
@@ -609,7 +609,7 @@ public class PlayerPhysics : MonoBehaviour {
 
 		// transform back into world space and apply
 		Vector3 velocityWS = transform.rotation * new Vector3(velocityXZ.x, velocityLS.y, velocityXZ.z);
-		_rb.velocity = velocityWS;
+		_rb.linearVelocity = velocityWS;
 	}
 
 	private Vector3 StickToGround(Vector3 velocity) {

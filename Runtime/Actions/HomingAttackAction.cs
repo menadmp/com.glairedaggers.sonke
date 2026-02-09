@@ -130,7 +130,7 @@ public class HomingAttackAction : PlayerActionBase {
 				break;
 			}
 
-			rb.velocity = (targetPos - myPos).normalized * homingSpeed;
+			rb.linearVelocity = (targetPos - myPos).normalized * homingSpeed;
 			yield return null;
 		}
 
@@ -147,7 +147,7 @@ public class HomingAttackAction : PlayerActionBase {
 
 	private Vector3 GetTargetPos(HomingTarget target) {
 		if(target.predictAhead) {
-			return target.GetHomingLocation(transform.position + (GetComponent<Rigidbody>().velocity * 0.1f));
+			return target.GetHomingLocation(transform.position + (GetComponent<Rigidbody>().linearVelocity * 0.1f));
 		} else {
 			return target.GetHomingLocation(transform.position);
 		}

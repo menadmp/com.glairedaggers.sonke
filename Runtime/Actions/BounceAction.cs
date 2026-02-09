@@ -73,7 +73,7 @@ public class BounceAction : PlayerActionBase {
 		var rb = GetComponent<Rigidbody>();
 		physics.LockState();
 		animator.targetAnimator.SetBool("bouncing", true);
-		rb.velocity = Vector3.down * downForce;
+		rb.linearVelocity = Vector3.down * downForce;
 		_collisionNormal = null;
 		_abort = false;
 

@@ -56,12 +56,12 @@ public class PlayerAnimationController : MonoBehaviour {
 	}
 
 	private void Update() {
-		Vector3 localSpeed = transform.InverseTransformDirection(_rb.velocity);
+		Vector3 localSpeed = transform.InverseTransformDirection(_rb.linearVelocity);
 		localSpeed.y = 0f;
 
 		Vector3 input = new Vector3(_physics.InputMoveAxes.x, 0f, _physics.InputMoveAxes.y);
 
-		if(_rb.velocity.y < 0f || _physics.isGrounded) {
+		if(_rb.linearVelocity.y < 0f || _physics.isGrounded) {
 			_jumping = false;
 		}
 
