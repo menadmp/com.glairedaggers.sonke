@@ -80,10 +80,10 @@ public class RailGrinder : MonoBehaviour {
 			Vector3 pt = rail.curve.GetClosestPoint(c, out var rot);
 			Vector3 toPt = pt - c;
 
-			if(Vector3.Dot(_rb.velocity, toPt) > 0f && Vector3.Distance(pt, c) <= detectionDistance) {
+			if(Vector3.Dot(_rb.linearVelocity, toPt) > 0f && Vector3.Distance(pt, c) <= detectionDistance) {
 				_activeRail = rail;
 				_physics.LockState();
-				_railSpeed = Vector3.Dot(_rb.velocity + (_physics.facingDirection * initialBoost), rot * Vector3.forward);
+				_railSpeed = Vector3.Dot(_rb.linearVelocity + (_physics.facingDirection * initialBoost), rot * Vector3.forward);
 				_facingDir = Mathf.Sign(_railSpeed);
 				_animation.targetAnimator.SetBool("railGrind", true);
 				break;
@@ -119,7 +119,7 @@ public class RailGrinder : MonoBehaviour {
 		} else {
 			Vector3 pt = _activeRail.curve.GetClosestPoint(_rb.position, out var rot);
 			_rb.MovePosition(pt);
-			_rb.velocity = rot * Vector3.forward * _railSpeed;
+			_rb.linearVelocity = rot * Vector3.forward * _railSpeed;
 			_physics.ForceUpAlignment(rot * Vector3.up);
 			_physics.RotateTowardsDirection(rot * Vector3.forward * _facingDir, 720f);
 			_physics.ForceGrounded(true);
